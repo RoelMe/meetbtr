@@ -4,6 +4,7 @@ import { ActionItemsTable } from "@/components/dashboard/ActionItemsTable";
 import { MeetingCard } from "@/components/dashboard/MeetingCard";
 import { Button } from "@/components/ui/button";
 import { SearchInput } from "@/components/ui/search-input";
+import { SignInCard } from "@/components/auth/SignInCard";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserActionItems } from "@/hooks/useUserActionItems";
@@ -111,28 +112,15 @@ export default function DashboardOverview() {
     if (!user) {
         return (
             <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
-                <div className="max-w-md w-full bg-white rounded-3xl shadow-xl shadow-slate-200/50 p-8 text-center space-y-6">
-                    <div className="h-16 w-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-2">
-                        <span className="text-3xl">👋</span>
-                    </div>
-                    <div className="space-y-2">
-                        <h2 className="text-3xl font-bold text-gray-900 tracking-tight">Welcome Back</h2>
-                        <p className="text-slate-500 font-medium">Sign in to access your dashboard and meetings.</p>
-                    </div>
-
-                    <Button
-                        onClick={async () => {
-                            try {
-                                await signInWithGoogle();
-                            } catch (e) {
-                                // Error handled in AuthProvider
-                            }
-                        }}
-                        className="w-full h-14 text-lg font-bold rounded-xl bg-slate-900 hover:bg-slate-800 text-white shadow-lg shadow-slate-500/20"
-                    >
-                        Sign in with Google
-                    </Button>
-                </div>
+                <SignInCard
+                    onGoogleSignIn={async () => {
+                        try {
+                            await signInWithGoogle();
+                        } catch (e) {
+                            // Error handled in AuthProvider
+                        }
+                    }}
+                />
             </div>
         );
     }
