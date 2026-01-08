@@ -177,7 +177,7 @@ export default function DashboardOverview() {
                         </TabsList>
                     </Tabs>
 
-                    <Link href="/">
+                    <Link href="/new">
                         <Button className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm h-11 px-4 rounded-xl transition-all font-bold text-xs">
                             <Plus className="mr-2 h-4 w-4" /> new meeting
                         </Button>
@@ -200,7 +200,7 @@ export default function DashboardOverview() {
                     <div className="bg-white rounded-[2rem] p-12 text-center border-2 border-dashed border-gray-200">
                         <h3 className="text-xl font-bold text-gray-900 mb-2">no upcoming meetings</h3>
                         <p className="text-slate-500 mb-8 font-medium">your schedule is clear. ready to plan something new?</p>
-                        <Link href="/">
+                        <Link href="/new">
                             <Button variant="outline" className="border-gray-200 h-11 rounded-xl font-bold">
                                 create an agenda
                             </Button>

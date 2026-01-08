@@ -141,7 +141,7 @@ export function MeetingsView({
                                 </Button>
                             </div>
 
-                            <Link href="/">
+                            <Link href="/new">
                                 <Button className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm h-11 px-4 rounded-xl transition-all font-bold text-xs">
                                     <Plus className="mr-2 h-4 w-4" /> new meeting
                                 </Button>
@@ -176,7 +176,7 @@ export function MeetingsView({
                                         </div>
                                         <h3 className="text-xl font-bold text-gray-900 mb-2">No upcoming meetings</h3>
                                         <p className="text-slate-500 mb-8">Ready to plan your next session?</p>
-                                        <Link href="/">
+                                        <Link href="/new">
                                             <Button variant="outline" className="border-gray-200 h-11 rounded-xl">
                                                 Create your first agenda
                                             </Button>
@@ -205,7 +205,7 @@ export function MeetingsView({
                                         </div>
                                         <h3 className="text-xl font-bold text-gray-900 mb-2">No meetings found</h3>
                                         <p className="text-slate-500 mb-8">Create your first meeting to get started.</p>
-                                        <Link href="/">
+                                        <Link href="/new">
                                             <Button variant="outline" className="border-gray-200 h-11 rounded-xl">
                                                 Create your first agenda
                                             </Button>
