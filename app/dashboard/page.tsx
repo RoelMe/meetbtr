@@ -143,7 +143,7 @@ export default function DashboardOverview() {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div>
                     <h1 className="text-5xl font-bold text-gray-900 tracking-tight mb-4 lowercase">Overview</h1>
-                    <p className="text-slate-500 font-medium max-w-lg">
+                    <p className="text-slate-500 font-medium">
                         Welcome back! Here&apos;s what&apos;s on your agenda for today and your most urgent tasks.
                     </p>
                 </div>
