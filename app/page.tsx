@@ -43,9 +43,7 @@ export default function LandingPage() {
                         <Button size="lg" onClick={handleGetStarted} className="h-12 text-base rounded-xl shadow-lg shadow-slate-500/20 bg-slate-900 hover:bg-slate-800 text-white">
                             Start Meeting Better Now <ArrowRight className="ml-2 w-4 h-4" />
                         </Button>
-                        <Button size="lg" variant="outline" className="h-12 text-base rounded-xl bg-background/50 backdrop-blur-sm border-border">
-                            View Demo
-                        </Button>
+
                     </div>
 
                     {/* Reviews / Social Proof Microcopy */}
@@ -126,7 +124,7 @@ export default function LandingPage() {
                     <div className="text-center max-w-3xl mx-auto mb-20">
                         <h2 className="text-3xl md:text-5xl font-bold tracking-tight mb-6">The Functional Premium.</h2>
                         <p className="text-lg text-muted-foreground">
-                            Agendar sits at the intersection of utility and approachability. It feels like a high-precision tool for professionals.
+                            Agendar sits at the intersection of utility and approachability. It feels like a high-precision tool for successful professionals.
                         </p>
                     </div>
 
@@ -141,17 +139,17 @@ export default function LandingPage() {
                             },
                             {
                                 icon: Sidebar,
-                                title: "Airy & Refined",
-                                description: "A border-first design system that breathes. Reduced eye strain with carefully calibrated contrast.",
+                                title: "Stay organized",
+                                description: "All your meetings and action items in one, neat overview. No more searching for across docs, emails, and notes.",
                                 color: "text-gray-500",
                                 bg: "bg-gray-500/10"
                             },
                             {
                                 icon: Clock,
-                                title: "Responsive",
-                                description: "Your agenda adapts to you. Whether on desktop or mobile, your data is always perfectly presented.",
+                                title: "Customized just for you",
+                                description: "Track only the meetings and action items that matter to you. See what's overdue, upcoming, or in progress in one place.",
                                 color: "text-emerald-500",
-                                bg: "bg-emerald-500/10"
+                                bg: "bg-gray-500/10"
                             }
                         ].map((benefit, i) => (
                             <Card key={i} className="group border border-gray-100 shadow-none hover:shadow-xl hover:border-gray-200 transition-all duration-300">
@@ -241,17 +239,16 @@ export default function LandingPage() {
             </section>
 
             {/* --- Final CTA --- */}
-            <section className="py-24 bg-slate-950 text-white relative overflow-hidden">
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-slate-800/20 to-transparent"></div>
-                <div className="container mx-auto px-4 text-center relative z-10">
-                    <h2 className="text-4xl md:text-5xl font-bold tracking-tight mb-6">Ready to run better meetings?</h2>
-                    <p className="text-xl text-slate-300 mb-10 max-w-2xl mx-auto">
+            <section className="py-24 bg-gray-50 dark:bg-zinc-900 border-t border-border">
+                <div className="container mx-auto px-4 text-center">
+                    <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-gray-100 tracking-tight mb-6">Ready to run better meetings?</h2>
+                    <p className="text-xl text-slate-500 dark:text-slate-400 mb-10 max-w-2xl mx-auto">
                         Join thousands of high-performing teams who have switched to the functional premium way of working.
                     </p>
-                    <Button size="lg" onClick={handleGetStarted} className="h-14 px-10 rounded-xl text-lg font-bold bg-white text-slate-900 hover:bg-slate-100 hover:scale-105 transition-all duration-300">
+                    <Button size="lg" onClick={handleGetStarted} className="h-14 px-10 rounded-xl text-lg font-bold bg-slate-900 text-white shadow-lg shadow-slate-900/10 hover:bg-slate-800 hover:scale-105 transition-all duration-300 dark:bg-white dark:text-slate-900">
                         Get Started for Free
                     </Button>
-                    <p className="mt-6 text-sm text-slate-500">No credit card required. Cancel anytime.</p>
+                    <p className="mt-6 text-sm text-slate-400">No credit card required. Cancel anytime.</p>
                 </div>
             </section>
 
@@ -268,7 +265,7 @@ export default function LandingPage() {
                                     height={24}
                                     className="rounded-md"
                                 />
-                                <span className="font-black italic text-lg">meetbtr</span>
+                                <span className="font-black text-lg">meetbtr</span>
                             </div>
                             <p className="text-sm text-muted-foreground">
                                 Making every minute count with functional, premium tools for thought.
