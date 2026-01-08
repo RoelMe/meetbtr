@@ -148,7 +148,7 @@ export default function LandingPage() {
                                 icon: Clock,
                                 title: "Customized just for you",
                                 description: "Track only the meetings and action items that matter to you. See what's overdue, upcoming, or in progress in one place.",
-                                color: "text-emerald-500",
+                                color: "text-gray-500",
                                 bg: "bg-gray-500/10"
                             }
                         ].map((benefit, i) => (
@@ -168,7 +168,7 @@ export default function LandingPage() {
 
                     <div className="mt-16 text-center">
                         <Button size="lg" onClick={handleGetStarted} className="h-12 px-8 rounded-xl font-bold shadow-lg shadow-slate-500/20 bg-slate-900 hover:bg-slate-800 text-white">
-                            Build Your First Agenda
+                            Try it out now
                         </Button>
                     </div>
                 </div>
