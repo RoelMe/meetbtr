@@ -230,7 +230,7 @@ export function ActionItemsTable({
                                             </DropdownMenu>
                                         </div>
                                     </th>
-                                    <th className="py-3 px-3 text-left text-xs font-bold text-slate-400 uppercase tracking-widest leading-none w-40">Topic</th>
+                                    <th className="py-3 px-3 text-left text-xs font-bold text-slate-400 tracking-widest leading-none w-40">Topic</th>
                                     <th className="py-3 px-3 text-left text-xs font-bold text-slate-400 tracking-widest leading-none min-w-[200px] max-w-[400px]">Updates</th>
                                     <th className="py-3 px-3 text-left text-xs font-bold text-slate-400 uppercase tracking-widest leading-none w-32">
                                         <div className="flex items-center justify-between gap-1">
