@@ -1,0 +1,136 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    /* Light Mode - "Functional Premium" */
+    /* Cool Gray (Gray 50) for Canvas */
+    --background: 210 20% 98%;
+
+    /* Gray 900 for Text */
+    --foreground: 220 13% 18%;
+
+    /* Pure White for Surface (Cards) */
+    --card: 0 0% 100%;
+    --card-foreground: 220 13% 18%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 13% 18%;
+
+    /* Gray 900 for Primary Actions */
+    --primary: 220 13% 18%;
+    --primary-foreground: 210 20% 98%;
+
+    /* Neutral Gray for Secondary Elements */
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 220 13% 18%;
+
+    /* Gray 100 for Muted/Backgrounds */
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 9% 46%;
+    /* Gray 500 */
+
+    /* Agendar Slate (Brand Accent) */
+    --accent: 215 16% 47%;
+    /* Slate 600 */
+    --accent-foreground: 210 20% 98%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    /* Gray 200 for Borders */
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 215 16% 47%;
+
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    /* Dark Mode - "Linear" Feel */
+    /* Zinc 950 for Canvas */
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+
+    /* Zinc 900 for Cards */
+    --card: 240 10% 9%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 0 0% 98%;
+    --primary-foreground: 240 5.9% 10%;
+
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+
+    /* Agendar Slate (Brand Accent) */
+    --accent: 215 16% 47%;
+    --accent-foreground: 210 20% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+
+    /* Zinc 800 for Borders */
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 240 4.9% 83.9%;
+  }
+}
+
+@theme inline {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-family: var(--font-sans);
+  /* Dot Pattern */
+  background-image: radial-gradient(hsl(var(--foreground) / 0.07) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator {
+  display: none;
+  -webkit-appearance: none;
+}
+
+@keyframes scroll {
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-scroll {
+  animation: scroll 30s linear infinite;
+}

@@ -1,0 +1,131 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // --- Helper Functions ---
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isUser(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isNonAnonymous() {
+      return isAuthenticated() && request.auth.token.firebase.sign_in_provider != 'anonymous';
+    }
+
+    function getMeeting(meetingId) {
+      return get(/databases/$(database)/documents/meetings/$(meetingId)).data;
+    }
+
+    function isMeetingOwner(meetingId) {
+      return isAuthenticated() && getMeeting(meetingId).ownerId == request.auth.uid;
+    }
+
+    function allowsGuestAccess(meetingId) {
+      return getMeeting(meetingId).guestAccess == true;
+    }
+
+    function isNotArchived(meetingId) {
+      return getMeeting(meetingId).isArchived == false;
+    }
+
+    // --- Users Collection ---
+
+    match /users/{userId} {
+      allow read: if isUser(userId);
+      
+      // Allow users to create their profile but default to 'free' tier
+      allow create: if isUser(userId) && request.resource.data.tier == 'free';
+      
+      // Safety: Prevent users from upgrading themselves or changing Stripe ID
+      // These must be handled by the Stripe Webhook (Admin SDK)
+      allow update: if isUser(userId) && 
+                    !request.resource.data.diff(resource.data).affectedKeys()
+                    .hasAny(['tier', 'stripeCustomerId']);
+    }
+
+    // --- Meetings Collection ---
+
+    match /meetings/{meetingId} {
+      allow read: if isAuthenticated() && (
+        resource.data.ownerId == request.auth.uid || 
+        resource.data.guestAccess == true
+      );
+
+      // Authenticated users (including anonymous) can create meetings
+      allow create: if isAuthenticated() && 
+                    request.resource.data.ownerId == request.auth.uid;
+
+      allow update: if isAuthenticated() && (
+        // 1. Owner can update everything if not archived
+        (resource.data.ownerId == request.auth.uid && resource.data.isArchived == false) ||
+        
+        // 2. Owner can update searchKeywords even if archived (for dashboard indexing)
+        (resource.data.ownerId == request.auth.uid && 
+         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['searchKeywords'])) ||
+
+        // 3. Claiming anonymous meeting (Transfer Ownership)
+        // Allows a guest who signs in with Google to take ownership of their meeting
+        (isNonAnonymous() && (resource.data.ownerId == 'guest' || resource.data.ownerId == 'anonymous') && 
+         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['ownerId']) &&
+         request.resource.data.ownerId == request.auth.uid) ||
+        
+        // 3. Guest collaboration
+        // Allows reordering and starting/ending the meeting if guestAccess is true
+        (resource.data.guestAccess == true && resource.data.isArchived == false && 
+         request.resource.data.diff(resource.data).affectedKeys()
+         .hasOnly(['topicOrder', 'status', 'startedAt', 'isArchived']))
+      );
+
+      // Only the owner can hard-delete a meeting
+      allow delete: if isAuthenticated() && resource.data.ownerId == request.auth.uid;
+
+      // --- Topics Sub-collection ---
+
+      match /topics/{topicId} {
+        // Inherit read access from parent meeting
+        allow read: if isAuthenticated() && (
+          getMeeting(meetingId).ownerId == request.auth.uid || 
+          getMeeting(meetingId).guestAccess == true
+        );
+
+        // Allow creation and updates if owner OR guest with access
+        allow create, update: if isAuthenticated() && isNotArchived(meetingId) && (
+          isMeetingOwner(meetingId) || allowsGuestAccess(meetingId)
+        );
+
+        // Soft deletes (isDeleted: true) are handled via 'update'
+        // Hard delete is restricted to the meeting owner
+        allow delete: if isMeetingOwner(meetingId);
+      }
+
+      // --- Action Items Sub-collection (Meeting Level) ---
+      match /actionItems/{actionId} {
+        allow read: if isAuthenticated() && (
+          resource.data.ownerId == request.auth.uid || 
+          isMeetingOwner(meetingId) || 
+          allowsGuestAccess(meetingId)
+        );
+
+        allow create, update: if isAuthenticated() && (
+          isMeetingOwner(meetingId) || allowsGuestAccess(meetingId)
+        );
+
+        allow delete: if isMeetingOwner(meetingId);
+      }
+    }
+
+    // --- Global Collection Group Rules ---
+    
+    match /{path=**}/actionItems/{actionId} {
+      allow read: if isAuthenticated() && (
+        resource.data.ownerId == request.auth.uid || 
+        resource.data.meetingOwnerId == request.auth.uid
+      );
+    }
+  }
+}
