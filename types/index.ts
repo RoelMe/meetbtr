@@ -46,3 +46,16 @@ export interface Meeting {
     createdAt: string;
     searchKeywords?: string; // Concatenated titles and owners of topics for search
 }
+
+export interface Comment {
+    id: string;
+    actionItemId?: string;
+    topicId?: string; // For potential future use or direct topic comments
+    content: string; // Markdown/Text
+    authorId: string;
+    authorName: string;
+    createdAt: string; // ISO string
+    parentId?: string | null; // For threaded replies
+    mentions: string[]; // Array of user IDs/Names mentioned
+    updatedAt?: string;
+}

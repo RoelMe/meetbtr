@@ -190,6 +190,31 @@ export function MeetingWorkspace({ meeting, topics, expandedTopicId }: MeetingWo
     return topics.reduce((sum: number, t: Topic) => sum + (t.isDeleted ? 0 : t.duration), 0);
   }, [topics]);
 
+  // Compute participants for mentions
+  const participants = useMemo(() => {
+    const uniqueParticipants = new Map<string, { id: string; name: string }>();
+
+    // Add meeting owner (if we had name, but we only have ID. For now let's hope topics cover it or just add "Meeting Owner")
+    // Actually, we don't have meeting owner name easily available in Meeting object unless we fetch it.
+    // But we have `topics` which have `ownerName` and `ownerId`.
+    // And `user` (current user).
+
+    if (user && user.uid) {
+      uniqueParticipants.set(user.uid, {
+        id: user.uid,
+        name: user.displayName || user.email?.split('@')[0] || "Me"
+      });
+    }
+
+    topics.forEach(t => {
+      if (t.ownerId && t.ownerName) {
+        uniqueParticipants.set(t.ownerId, { id: t.ownerId, name: t.ownerName });
+      }
+    });
+
+    return Array.from(uniqueParticipants.values());
+  }, [topics, user]);
+
   return (
     <div className="min-h-screen bg-slate-50 p-4 md:p-8">
       <div className="max-w-4xl mx-auto">
@@ -236,7 +261,9 @@ export function MeetingWorkspace({ meeting, topics, expandedTopicId }: MeetingWo
             onEmptyStateAddClick={() => setAddTopicFocusTrigger(prev => prev + 1)}
             disabled={meeting.isArchived}
             expandedTopicId={expandedTopicId}
+            participants={participants}
           />
+
 
           {meeting.status === 'planning' && !meeting.isArchived && (
             <div className="mt-4">

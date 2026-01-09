@@ -30,7 +30,8 @@ import { ActionItemForm } from "./ActionItemForm";
 import { ActionItemListItem } from "./ActionItemListItem";
 import { useActionItems } from "../../hooks/useActionItems";
 import { ListTodo } from "lucide-react";
-import { DebouncedTextarea } from "../ui/debounced-textarea";
+import { DebouncedMentionTextarea } from "../ui/debounced-mention-textarea";
+import { MentionCandidate } from "../ui/mention-textarea";
 
 interface TopicCardProps {
     topic: CalculatedTopic;
@@ -53,6 +54,7 @@ interface TopicCardProps {
     meetingOwnerId: string;
     meetingScheduledAt: string;
     isInitiallyExpanded?: boolean;
+    participants?: MentionCandidate[];
 }
 
 export function TopicCard({
@@ -72,7 +74,8 @@ export function TopicCard({
     meetingTitle,
     meetingOwnerId,
     meetingScheduledAt,
-    isInitiallyExpanded = false
+    isInitiallyExpanded = false,
+    participants = []
 }: TopicCardProps) {
     const { user } = useAuth();
     const { actionItems, addActionItem, toggleActionItem, deleteActionItem, updateActionItem } = useActionItems(meetingId, topic.id);
@@ -303,12 +306,14 @@ export function TopicCard({
                                         </div>
                                     )}
                                 </div>
-                                <DebouncedTextarea
+                                <DebouncedMentionTextarea
                                     value={topic.notes || ""}
                                     onSave={(val: string) => onUpdate({ notes: val })}
-                                    placeholder={isReadonly ? "No notes recorded." : "Capture key points here..."}
-                                    className="bg-transparent border-0 focus-visible:ring-0 p-0 text-sm text-slate-700 min-h-[100px] resize-none"
+                                    placeholder={isReadonly ? "No notes recorded." : "Capture key points here... Use @ to mention."}
+                                    className="bg-transparent border-0 focus-visible:ring-0 p-0 text-sm text-slate-700 resize-none shadow-none focus:ring-0"
+                                    minHeight="min-h-[100px]"
                                     readOnly={isReadonly}
+                                    candidates={participants}
                                 />
                             </div>
 
@@ -333,6 +338,8 @@ export function TopicCard({
                                             onUpdate={updateActionItem}
                                             onDelete={deleteActionItem}
                                             disabled={false}
+                                            meetingId={meetingId}
+                                            participants={participants}
                                         />
                                     ))}
                                     {actionItems.length === 0 && !isReadonly && (

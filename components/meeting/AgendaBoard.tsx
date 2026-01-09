@@ -24,6 +24,7 @@ import { Plus } from "lucide-react";
 import { Meeting } from "../../types";
 import { format, addMinutes } from "date-fns";
 import { cn } from "@/lib/utils";
+import { MentionCandidate } from "@/components/ui/mention-textarea";
 
 interface AgendaBoardProps {
     meeting: Meeting;
@@ -39,6 +40,7 @@ interface AgendaBoardProps {
     onEmptyStateAddClick?: () => void;
     disabled?: boolean;
     expandedTopicId?: string | null;
+    participants?: MentionCandidate[];
 }
 
 export function AgendaBoard({
@@ -54,7 +56,8 @@ export function AgendaBoard({
     onDeleteTopic,
     onEmptyStateAddClick,
     disabled = false,
-    expandedTopicId
+    expandedTopicId,
+    participants = []
 }: AgendaBoardProps) {
     const sensors = useSensors(
         useSensor(PointerSensor, {
@@ -189,7 +192,9 @@ export function AgendaBoard({
                                                 meetingOwnerId={meeting.ownerId}
                                                 meetingScheduledAt={meeting.scheduledAt}
                                                 isInitiallyExpanded={expandedTopicId === id}
+                                                participants={participants}
                                             />
+
                                         </div>
                                     )}
                                 </SortableItem>

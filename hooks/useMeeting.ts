@@ -18,7 +18,29 @@ export function useMeeting(meetingId: string) {
             meetingRef,
             (docSnap) => {
                 if (docSnap.exists()) {
-                    setMeeting({ id: docSnap.id, ...docSnap.data() } as Meeting);
+                    const data = docSnap.data();
+                    // Helper to safely convert Firestore timestamps to ISO strings
+                    const convertTimestamp = (ts: any) => {
+                        try {
+                            return ts?.toDate?.().toISOString() || ts || new Date().toISOString();
+                        } catch (e) {
+                            return new Date().toISOString();
+                        }
+                    };
+
+                    const safeScheduledAt = convertTimestamp(data.scheduledAt || data.createdAt);
+
+                    setMeeting({
+                        id: docSnap.id,
+                        ...data,
+                        scheduledAt: safeScheduledAt,
+                        createdAt: convertTimestamp(data.createdAt),
+                        startedAt: data.startedAt ? convertTimestamp(data.startedAt) : null,
+                        scheduledDuration: Number(data.scheduledDuration) || 60, // Ensure it's a number, default to 60
+                        topicOrder: data.topicOrder || [],
+                        status: data.status || 'planning',
+                        timezone: data.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone,
+                    } as Meeting);
                 } else {
                     setError(new Error("Meeting not found"));
                 }
@@ -37,9 +59,18 @@ export function useMeeting(meetingId: string) {
         const unsubscribeTopics = onSnapshot(
             topicsQuery,
             (querySnap) => {
-                const topicsData = querySnap.docs.map(
-                    (doc) => ({ id: doc.id, ...doc.data() } as Topic)
-                );
+                // Re-declare helper or move it outside if possible, but inside effect is fine
+                const convertTimestamp = (ts: any) => ts?.toDate?.().toISOString() || ts;
+
+                const topicsData = querySnap.docs.map((doc) => {
+                    const data = doc.data();
+                    return {
+                        id: doc.id,
+                        ...data,
+                        createdAt: convertTimestamp(data.createdAt),
+                        completedAt: convertTimestamp(data.completedAt)
+                    } as Topic;
+                });
                 setTopics(topicsData);
             },
             (err) => {
