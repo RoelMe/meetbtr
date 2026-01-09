@@ -20,17 +20,21 @@ import { useAuth } from "@/hooks/useAuth";
 interface MeetingHeaderProps {
     meeting: Meeting;
     endTime: Date;
+    topicsTotalDuration: number;
     onStart: () => void;
     onEnd: () => void;
     onShare: () => void;
 }
 
-export function MeetingHeader({ meeting, endTime, onStart, onEnd, onShare }: MeetingHeaderProps) {
+export function MeetingHeader({ meeting, endTime, topicsTotalDuration, onStart, onEnd, onShare }: MeetingHeaderProps) {
     const { user, signOut, signInWithGoogle } = useAuth();
     const startDate = new Date(meeting.scheduledAt);
     const formattedDate = format(startDate, "MMMM do, yyyy");
     const formattedStartTime = format(startDate, "h:mm a");
     const formattedEndTime = format(endTime, "h:mm a");
+
+    const minutesLeft = Number(meeting.scheduledDuration) - topicsTotalDuration;
+    const isOverrun = minutesLeft < 0;
 
     // Get abbreviated timezone and city (e.g., "GMT, Lisbon")
     const timezoneDisplay = React.useMemo(() => {
@@ -91,6 +95,12 @@ export function MeetingHeader({ meeting, endTime, onStart, onEnd, onShare }: Mee
                         <div className="flex items-center gap-1.5">
                             <Clock className="w-4 h-4" />
                             <span>{formattedStartTime} - {formattedEndTime}</span>
+                            <span className={cn(
+                                "ml-1 font-bold",
+                                isOverrun ? "text-red-500" : "text-slate-400"
+                            )}>
+                                ({isOverrun ? `${minutesLeft}m` : `${minutesLeft}m left`})
+                            </span>
                         </div>
                         <span className="text-slate-400 font-normal">{timezoneDisplay}</span>
                     </div>

@@ -179,12 +179,16 @@ export function MeetingWorkspace({ meeting, topics, expandedTopicId }: MeetingWo
     alert("Meeting link copied to clipboard!");
   };
 
-  // Calculate end time
+  // Calculate end time based on scheduled duration (fixed)
   const endTime = useMemo(() => {
     const start = new Date(meeting.scheduledAt);
-    const totalDuration = topics.reduce((sum: number, t: Topic) => sum + (t.isDeleted ? 0 : t.duration), 0);
-    return new Date(start.getTime() + totalDuration * 60000);
-  }, [meeting.scheduledAt, topics]);
+    return new Date(start.getTime() + meeting.scheduledDuration * 60000);
+  }, [meeting.scheduledAt, meeting.scheduledDuration]);
+
+  // Calculate total duration of topics
+  const topicsTotalDuration = useMemo(() => {
+    return topics.reduce((sum: number, t: Topic) => sum + (t.isDeleted ? 0 : t.duration), 0);
+  }, [topics]);
 
   return (
     <div className="min-h-screen bg-slate-50 p-4 md:p-8">
@@ -211,6 +215,7 @@ export function MeetingWorkspace({ meeting, topics, expandedTopicId }: MeetingWo
         <MeetingHeader
           meeting={meeting}
           endTime={endTime}
+          topicsTotalDuration={topicsTotalDuration}
           onStart={handleStartMeeting}
           onEnd={handleEndMeeting}
           onShare={handleShare}
