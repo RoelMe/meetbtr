@@ -95,14 +95,14 @@ export function MeetingHeader({ meeting, endTime, topicsTotalDuration, onStart, 
                         <div className="flex items-center gap-1.5">
                             <Clock className="w-4 h-4" />
                             <span>{formattedStartTime} - {formattedEndTime}</span>
-                            <span className={cn(
-                                "ml-1 font-bold",
-                                isOverrun ? "text-red-500" : "text-slate-400"
-                            )}>
-                                ({isOverrun ? `${minutesLeft}m` : `${minutesLeft}m left`})
-                            </span>
                         </div>
                         <span className="text-slate-400 font-normal">{timezoneDisplay}</span>
+                        <span className={cn(
+                            "font-bold",
+                            isOverrun ? "text-red-500" : "text-slate-400"
+                        )}>
+                            ({isOverrun ? `${minutesLeft}m` : `${minutesLeft}m left`})
+                        </span>
                     </div>
                 </div>
             </div>
