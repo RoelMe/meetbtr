@@ -90,46 +90,70 @@ export function AgendaBoard({
                 <div className="space-y-3 relative">
 
                     {(() => {
-                        let cumulativeMinutes = 0;
-                        let endLineRendered = false;
-                        const scheduledMinutes = meeting.scheduledDuration;
+                        const scheduledMinutes = Number(meeting.scheduledDuration);
+                        let currentCumulative = 0;
+                        let endLineDrawn = false;
 
-                        return topicOrder.map((id, index) => {
+                        // Pre-calculate layout data to avoid mutable state issues in render
+                        const layoutItems = topicOrder.map((id) => {
                             const topic = topics.find((t) => t.id === id);
                             if (!topic) return null;
 
-                            const prevCumulative = cumulativeMinutes;
-                            cumulativeMinutes += topic.duration;
+                            const duration = Number(topic.duration);
+                            const start = currentCumulative;
+                            const end = currentCumulative + duration;
+                            currentCumulative = end;
 
-                            const isOverrun = prevCumulative >= scheduledMinutes;
+                            const isOverrunContainer = start < scheduledMinutes && end > scheduledMinutes;
+                            const isOverrun = start >= scheduledMinutes; // Strictly after schedule
 
-                            // Determine if the end-of-meeting line should be rendered on this topic
-                            const showEndLine = !endLineRendered && (
-                                (prevCumulative < scheduledMinutes && cumulativeMinutes >= scheduledMinutes) ||
-                                (prevCumulative === scheduledMinutes)
+                            // Determine if this topic should host the end-line indicator
+                            // It hosts it if it contains the scheduled minute, or if it ends exactly on it
+                            // But we only want to draw it once.
+                            const showEndLine = !endLineDrawn && (
+                                (start < scheduledMinutes && end >= scheduledMinutes) ||
+                                (start === scheduledMinutes) // Starts exactly when meeting ends
                             );
 
-                            const elements = [];
-
                             if (showEndLine) {
-                                endLineRendered = true;
+                                endLineDrawn = true;
                             }
 
-                            elements.push(
+                            return {
+                                topic,
+                                id,
+                                start,
+                                end,
+                                isOverrunContainer,
+                                isOverrun,
+                                showEndLine
+                            };
+                        }).filter(item => item !== null);
+
+                        return layoutItems.map((item) => {
+                            if (!item) return null; // Should be filtered already
+                            const { topic, id, start, end, isOverrunContainer, isOverrun, showEndLine } = item;
+                            const scheduledMinutes = Number(meeting.scheduledDuration); // Scope safety
+
+                            return (
                                 <SortableItem key={id} id={id}>
                                     {(sortableProps) => (
                                         <div className="relative">
                                             {/* End of Meeting Indicator */}
                                             {showEndLine && (() => {
-                                                const percent = ((scheduledMinutes - prevCumulative) / topic.duration) * 100;
-                                                const isAtBottom = percent === 100;
-                                                const isAtTop = percent === 0;
+                                                // If start < scheduled < end, calculate percent.
+                                                // If start == scheduled, percent is 0.
+                                                // If end == scheduled, percent is 100.
 
-                                                const topPosition = isAtBottom
-                                                    ? 'calc(100% + 6px)'
-                                                    : isAtTop
-                                                        ? '-6px'
-                                                        : `${percent}%`;
+                                                let percent = 0;
+                                                if (end > start) {
+                                                    percent = ((scheduledMinutes - start) / (end - start)) * 100;
+                                                }
+
+                                                // Clamp percent between 0 and 100
+                                                percent = Math.max(0, Math.min(100, percent));
+
+                                                const topPosition = `${percent}%`;
 
                                                 return (
                                                     <div
@@ -152,7 +176,7 @@ export function AgendaBoard({
                                                 isOvertime={activeTopicId === id ? isOvertime : false}
                                                 onUpdate={(updates) => onUpdateTopic(id, updates)}
                                                 onDelete={() => onDeleteTopic(id)}
-                                                isOverrunContainer={prevCumulative < scheduledMinutes && cumulativeMinutes > scheduledMinutes}
+                                                isOverrunContainer={isOverrunContainer}
                                                 isOverrun={isOverrun}
                                                 dragHandleProps={{
                                                     attributes: sortableProps.attributes,
@@ -170,8 +194,6 @@ export function AgendaBoard({
                                     )}
                                 </SortableItem>
                             );
-
-                            return elements;
                         });
                     })()}
                     {topicOrder.length === 0 && (

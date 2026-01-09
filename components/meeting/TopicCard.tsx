@@ -293,11 +293,11 @@ export function TopicCard({
                                 <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 block">Context</label>
                                 <p className="text-sm text-slate-600 leading-relaxed">{topic.description || "No context provided."}</p>
                             </div>
-                            <div className="bg-amber-50/50 rounded-xl p-3 border border-amber-100">
+                            <div className="bg-gray-50/50 rounded-xl p-3 border border-gray-100">
                                 <div className="flex items-center justify-between mb-2">
-                                    <label className="text-[10px] font-bold text-amber-700/70 uppercase tracking-wider block">Notes & Decisions</label>
+                                    <label className="text-[10px] font-bold text-gray-700/70 uppercase tracking-wider block">Notes</label>
                                     {!isReadonly && (
-                                        <div className="flex items-center text-[10px] text-amber-600/50">
+                                        <div className="flex items-center text-[10px] text-gray-600/50">
                                             <CheckCircle className="w-3 h-3 mr-1" />
                                             <span>Auto-saving</span>
                                         </div>
@@ -306,7 +306,7 @@ export function TopicCard({
                                 <DebouncedTextarea
                                     value={topic.notes || ""}
                                     onSave={(val: string) => onUpdate({ notes: val })}
-                                    placeholder={isReadonly ? "No notes recorded." : "Capture key points and decisions..."}
+                                    placeholder={isReadonly ? "No notes recorded." : "Capture key points here..."}
                                     className="bg-transparent border-0 focus-visible:ring-0 p-0 text-sm text-slate-700 min-h-[100px] resize-none"
                                     readOnly={isReadonly}
                                 />
