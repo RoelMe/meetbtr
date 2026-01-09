@@ -56,7 +56,7 @@ export function ActionItemComments({ meetingId, actionItemId, participants }: Ac
                         candidates={participants}
                         placeholder="Type a comment... Use @ to mention someone."
                         minHeight="min-h-[80px]"
-                        className="text-sm shadow-sm"
+                        className="text-sm"
                         onKeyDown={(e) => {
                             if (e.key === 'Enter' && !e.shiftKey) {
                                 e.preventDefault();
@@ -69,9 +69,9 @@ export function ActionItemComments({ meetingId, actionItemId, participants }: Ac
                     onClick={handleSubmit}
                     disabled={!newComment.trim() || isSubmitting}
                     size="icon"
-                    className="h-10 w-10 shrink-0 bg-slate-900 hover:bg-slate-800"
+                    className="h-10 w-10 shrink-0 text-primary hover:bg-slate-100 bg-transparent shadow-none"
                 >
-                    <Send className="w-4 h-4 text-white" />
+                    <Send className="w-5 h-5" />
                 </Button>
             </div>
             <p className="text-[10px] text-slate-400 pl-1">

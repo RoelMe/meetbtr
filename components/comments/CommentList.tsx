@@ -12,11 +12,7 @@ interface CommentListProps {
 
 export function CommentList({ comments, onDelete, onEdit, candidates }: CommentListProps) {
     if (comments.length === 0) {
-        return (
-            <div className="py-8 text-center">
-                <p className="text-sm text-slate-400 italic">No comments yet. Start the discussion!</p>
-            </div>
-        );
+        return null;
     }
 
     return (

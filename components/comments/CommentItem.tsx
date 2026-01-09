@@ -42,16 +42,17 @@ export function CommentItem({ comment, onDelete, onEdit, onReply, candidates }: 
 
     // Format content to highlight mentions
     const renderContent = (content: string) => {
-        // Regex to find @names and wrap them
-        // This is a basic implementation. Robust would iterate candidates.
-        const parts = content.split(/(@[\w\s]+)/g);
+        // Regex to find @Name or @First Last
+        // Matches @ followed by word chars, optionally followed by space and another word
+        const parts = content.split(/(@[\w\u00C0-\u00FF]+(?:\s[\w\u00C0-\u00FF]+)?)/g);
         return parts.map((part, i) => {
             if (part.startsWith("@")) {
-                // Check if it matches a candidate (roughly)
                 const name = part.substring(1).trim();
-                //  const match = candidates.find(c => c.name === name);
-                // Just highlight for now
-                return <span key={i} className="text-blue-600 font-semibold bg-blue-50 rounded px-1">{part}</span>;
+                // Optional: Strictly check against candidates if available
+                // const isCandidate = candidates.some(c => c.name === name);
+                // if (!isCandidate) return part;
+
+                return <span key={i} className="text-blue-600 font-semibold bg-blue-50 rounded px-1 box-decoration-clone">{part}</span>;
             }
             return part;
         });
@@ -81,8 +82,12 @@ export function CommentItem({ comment, onDelete, onEdit, onReply, candidates }: 
                     {isOwner && !isEditing && (
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="sm" className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <MoreHorizontal className="w-4 h-4 text-slate-400" />
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-6 w-6 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-md"
+                                >
+                                    <MoreHorizontal className="w-4 h-4" />
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">

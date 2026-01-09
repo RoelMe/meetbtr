@@ -116,27 +116,58 @@ export function MentionTextarea({
         }
     };
 
+    // Overlay ref for syncing scroll
+    const overlayRef = useRef<HTMLDivElement>(null);
+
+    const handleScroll = () => {
+        if (textareaRef.current && overlayRef.current) {
+            overlayRef.current.scrollTop = textareaRef.current.scrollTop;
+        }
+    };
+
     return (
-        <div className="relative w-full">
-            <textarea
-                ref={textareaRef}
-                value={value}
-                onChange={handleChange}
-                onKeyDown={handleKeyDown}
-                className={cn(
-                    "w-full p-3 rounded-xl border border-slate-200 bg-white resize-y focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-300 text-sm text-slate-800 placeholder:text-slate-400",
-                    minHeight,
-                    className
-                )}
-                placeholder={placeholder}
-                {...props}
-            />
+        <div className="relative w-full group">
+            <div className="relative grid">
+                {/* Highlight Overlay */}
+                <div
+                    ref={overlayRef}
+                    aria-hidden="true"
+                    className={cn(
+                        "col-start-1 row-start-1 w-full p-3 whitespace-pre-wrap break-words pointer-events-none text-sm font-sans overflow-hidden border border-transparent", // Hide overflow, match border width
+                        minHeight,
+                        className,
+                        "bg-transparent text-slate-800"
+                    )}
+                >
+                    {value.split(/(@[\w\u00C0-\u00FF]+(?:\s[\w\u00C0-\u00FF]+)?)/g).map((part, i) => {
+                        if (part.startsWith("@")) {
+                            return <span key={i} className="text-blue-600 font-semibold bg-blue-50 rounded px-[2px] -mx-[2px]">{part}</span>;
+                        }
+                        return <span key={i}>{part}</span>;
+                    })}
+                    {/* Add extra space to match textarea behavior if needed */}
+                    <br />
+                </div>
+
+                <textarea
+                    ref={textareaRef}
+                    value={value}
+                    onChange={handleChange}
+                    onKeyDown={handleKeyDown}
+                    onScroll={handleScroll}
+                    className={cn(
+                        "col-start-1 row-start-1 relative z-10 w-full p-3 rounded-xl border border-slate-100 resize-y focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-200 text-sm font-sans bg-transparent",
+                        "!text-transparent caret-slate-900 selection:bg-blue-100 selection:text-transparent", // Force transparent text to prevent ghosting
+                        minHeight,
+                        className
+                    )}
+                    placeholder={placeholder}
+                    {...props}
+                />
+            </div>
 
             {showSuggestions && filteredCandidates.length > 0 && (
                 <div className="absolute left-0 right-0 z-50 mt-1 bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden animate-in fade-in slide-in-from-top-1 max-h-48 overflow-y-auto">
-                    <div className="px-2 py-1.5 bg-slate-50 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                        Mentioning
-                    </div>
                     {filteredCandidates.map((candidate, index) => (
                         <button
                             key={candidate.id}

@@ -42,18 +42,26 @@ export function ActionItemRow({ item }: ActionItemRowProps) {
 
     const isOverdue = item.dueDate && !item.isCompleted && isPast(parseISO(item.dueDate)) && !isToday(parseISO(item.dueDate));
 
-    // Construct participants for mentions (approximate for dashboard context)
+    // Create limited participants list for mentions (Current User + Item Owner + Meeting Owner)
     const participants: MentionCandidate[] = React.useMemo(() => {
         const p: MentionCandidate[] = [];
+
+        // Re-added current user so the menu appears (user feedback 1277)
         if (user && user.uid) {
             p.push({ id: user.uid, name: user.displayName || "Me" });
         }
-        if (item.ownerId && item.ownerName && item.ownerId !== user?.uid) {
-            p.push({ id: item.ownerId, name: item.ownerName });
+
+        if (item.ownerId && item.ownerName) {
+            // Avoid duplicates
+            if (!p.some(existing => existing.id === item.ownerId) && item.ownerId !== user?.uid) {
+                p.push({ id: item.ownerId, name: item.ownerName });
+            }
         }
-        // Add meeting owner if known and different
-        // item.meetingOwnerId is available, but we might not have the name if it's not the current user or task owner.
-        // We'll rely on what we have.
+
+        // We don't have full meeting participants here in dashboard view easily
+        // But we can add the meeting owner if we had that info. 
+        // For now, this is a "best effort" context.
+
         return p;
     }, [user, item.ownerId, item.ownerName]);
 

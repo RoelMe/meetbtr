@@ -194,11 +194,7 @@ export function MeetingWorkspace({ meeting, topics, expandedTopicId }: MeetingWo
   const participants = useMemo(() => {
     const uniqueParticipants = new Map<string, { id: string; name: string }>();
 
-    // Add meeting owner (if we had name, but we only have ID. For now let's hope topics cover it or just add "Meeting Owner")
-    // Actually, we don't have meeting owner name easily available in Meeting object unless we fetch it.
-    // But we have `topics` which have `ownerName` and `ownerId`.
-    // And `user` (current user).
-
+    // Re-added current user so the menu appears (user feedback 1277)
     if (user && user.uid) {
       uniqueParticipants.set(user.uid, {
         id: user.uid,
@@ -207,7 +203,8 @@ export function MeetingWorkspace({ meeting, topics, expandedTopicId }: MeetingWo
     }
 
     topics.forEach(t => {
-      if (t.ownerId && t.ownerName) {
+      if (t.ownerId && t.ownerName) { // Allow dupes with user to be filtered by map set if needed, but actually we want all
+        // Map handles dupes by ID.
         uniqueParticipants.set(t.ownerId, { id: t.ownerId, name: t.ownerName });
       }
     });
