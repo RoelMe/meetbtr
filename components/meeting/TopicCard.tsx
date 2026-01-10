@@ -8,7 +8,7 @@ import { Badge } from "../ui/badge";
 import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
-import { Select } from "../ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import {
     GripVertical,
     Clock,
@@ -23,15 +23,19 @@ import {
     Pencil,
     Trash2,
     CheckCircle,
-    Check
+    Check,
+    Plus
 } from "lucide-react";
 import { OwnerPicker } from "./OwnerPicker";
 import { ActionItemForm } from "./ActionItemForm";
 import { ActionItemListItem } from "./ActionItemListItem";
 import { useActionItems } from "../../hooks/useActionItems";
+import { useDecisions } from "../../hooks/useDecisions";
 import { ListTodo } from "lucide-react";
 import { DebouncedMentionTextarea } from "../ui/debounced-mention-textarea";
 import { MentionCandidate } from "../ui/mention-textarea";
+import { DecisionForm } from "./DecisionForm";
+import { DecisionListItem } from "./DecisionListItem";
 
 interface TopicCardProps {
     topic: CalculatedTopic;
@@ -79,8 +83,11 @@ export function TopicCard({
 }: TopicCardProps) {
     const { user } = useAuth();
     const { actionItems, addActionItem, toggleActionItem, deleteActionItem, updateActionItem } = useActionItems(meetingId, topic.id);
+    const { decisions, addDecision, deleteDecision, updateDecision } = useDecisions(meetingId, topic.id);
     const [isExpanded, setIsExpanded] = useState(isInitiallyExpanded);
     const [editingField, setEditingField] = useState<string | null>(null);
+    const [isAddingAction, setIsAddingAction] = useState(false);
+    const [isAddingDecision, setIsAddingDecision] = useState(false);
 
     React.useEffect(() => {
         if (isInitiallyExpanded) {
@@ -182,13 +189,22 @@ export function TopicCard({
                         {isEditing ? (
                             <Select
                                 value={topic.type}
-                                onChange={(e: any) => onUpdate({ type: e.target.value })}
-                                className="h-6 text-[10px] py-0 w-28"
-                                autoFocus={editingField === 'type'}
+                                onValueChange={(val: any) => onUpdate({ type: val })}
                             >
-                                {topicTypes.map(type => (
-                                    <option key={type} value={type}>{type}</option>
-                                ))}
+                                <SelectTrigger className="h-6 text-[10px] py-0 w-28" autoFocus={editingField === 'type'}>
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent className="border-slate-100 shadow-lg shadow-slate-200/50 rounded-xl min-w-[140px]">
+                                    {topicTypes.map(type => (
+                                        <SelectItem
+                                            key={type}
+                                            value={type}
+                                            className="focus:bg-slate-50 focus:text-slate-900 cursor-pointer text-slate-600 font-medium my-0.5 rounded-lg capitalize pl-8"
+                                        >
+                                            {type}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
                             </Select>
                         ) : (
                             <Badge
@@ -319,17 +335,19 @@ export function TopicCard({
 
                             {/* Action Items Section */}
                             <div className="pt-2">
-                                <div className="flex items-center gap-2 mb-3">
-                                    <ListTodo className="w-4 h-4 text-slate-900" />
-                                    <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">Action Items</h4>
-                                    {actionItems.length > 0 && (
-                                        <Badge variant="secondary" className="bg-slate-100 text-slate-600 border-0 h-4 px-1.5 text-[10px]">
-                                            {actionItems.filter(i => i.isCompleted).length}/{actionItems.length}
-                                        </Badge>
-                                    )}
-                                </div>
+                                {(actionItems.length > 0 || isAddingAction) && (
+                                    <div className="flex items-center gap-2 mb-3">
+                                        <ListTodo className="w-4 h-4 text-slate-900" />
+                                        <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">Action Items</h4>
+                                        {actionItems.length > 0 && (
+                                            <Badge variant="secondary" className="bg-slate-100 text-slate-600 border-0 h-4 px-1.5 text-[10px]">
+                                                {actionItems.filter(i => i.isCompleted).length}/{actionItems.length}
+                                            </Badge>
+                                        )}
+                                    </div>
+                                )}
 
-                                <div className="space-y-1 mb-4">
+                                <div className="space-y-1 mb-2">
                                     {actionItems.map(item => (
                                         <ActionItemListItem
                                             key={item.id}
@@ -342,15 +360,72 @@ export function TopicCard({
                                             participants={participants}
                                         />
                                     ))}
-                                    {actionItems.length === 0 && !isReadonly && (
-                                        <p className="text-[10px] text-slate-400 italic ml-1">No action items yet.</p>
-                                    )}
                                 </div>
 
-                                <ActionItemForm onAdd={(title, owner, date, ownerId) => {
-                                    addActionItem(title, owner, date, meetingTitle, topic.title, meetingOwnerId, ownerId, meetingScheduledAt);
-                                }} />
+                                {!isReadonly && (
+                                    isAddingAction ? (
+                                        <ActionItemForm onAdd={(title, owner, date, ownerId) => {
+                                            addActionItem(title, owner, date, meetingTitle, topic.title, meetingOwnerId, ownerId, meetingScheduledAt);
+                                            setIsAddingAction(false);
+                                        }} />
+                                    ) : (
+                                        <Button
+                                            variant="ghost"
+                                            className="text-slate-900 hover:bg-slate-50 p-0 h-auto font-medium text-sm flex items-center gap-1 hover:text-slate-700 ml-1"
+                                            onClick={() => setIsAddingAction(true)}
+                                        >
+                                            <Plus className="w-4 h-4" />
+                                            action
+                                        </Button>
+                                    )
+                                )}
                             </div>
+
+                            {/* Decisions Section */}
+                            <div className="pt-6 border-t border-slate-100 mt-6">
+                                {(decisions.length > 0 || isAddingDecision) && (
+                                    <div className="flex items-center gap-2 mb-3">
+                                        <Target className="w-4 h-4 text-slate-900" />
+                                        <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">Decisions</h4>
+                                        {decisions.length > 0 && (
+                                            <Badge variant="secondary" className="bg-slate-100 text-slate-600 border-0 h-4 px-1.5 text-[10px]">
+                                                {decisions.length}
+                                            </Badge>
+                                        )}
+                                    </div>
+                                )}
+
+                                <div className="space-y-1 mb-2">
+                                    {decisions.map(decision => (
+                                        <DecisionListItem
+                                            key={decision.id}
+                                            decision={decision}
+                                            onUpdate={updateDecision}
+                                            onDelete={deleteDecision}
+                                            disabled={false}
+                                        />
+                                    ))}
+                                </div>
+
+                                {!isReadonly && (
+                                    isAddingDecision ? (
+                                        <DecisionForm onAdd={(desc, owner, effective, expiry, ownerId) => {
+                                            addDecision(desc, owner, effective, meetingTitle, topic.title, meetingOwnerId, ownerId, expiry);
+                                            setIsAddingDecision(false);
+                                        }} />
+                                    ) : (
+                                        <Button
+                                            variant="ghost"
+                                            className="text-slate-900 hover:bg-slate-50 p-0 h-auto font-medium text-sm flex items-center gap-1 hover:text-slate-700 ml-1"
+                                            onClick={() => setIsAddingDecision(true)}
+                                        >
+                                            <Plus className="w-4 h-4" />
+                                            decision
+                                        </Button>
+                                    )
+                                )}
+                            </div>
+
                         </div>
                     )}
                 </div>

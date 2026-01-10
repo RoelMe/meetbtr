@@ -2,14 +2,18 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Calendar, Clock, Plus } from 'lucide-react';
+import { Calendar, Clock, Plus, Repeat } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/card';
+import { Switch } from '../../components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { db } from '../../lib/firebase';
+import { db, auth } from '../../lib/firebase';
 import { useAuth } from '@/hooks/useAuth';
 import { LogIn } from 'lucide-react';
+import { v4 as uuidv4 } from 'uuid';
+import { addDays, addWeeks, addMonths, addYears, isAfter, parseISO, startOfDay } from 'date-fns';
 
 export default function CreateMeetingPage() {
   const router = useRouter();
@@ -19,7 +23,10 @@ export default function CreateMeetingPage() {
     title: '',
     date: new Date().toISOString().split('T')[0], // Default to today
     startTime: '09:00',
-    endTime: '10:00'
+    endTime: '10:00',
+    isRecurring: false,
+    recurrenceFrequency: 'weekly' as 'daily' | 'weekly' | 'monthly' | 'yearly',
+    recurrenceEndDate: ''
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -32,32 +39,108 @@ export default function CreateMeetingPage() {
       // If not logged in, sign in anonymously first
       if (!currentUser) {
         await signInAnonymously();
-        // The auth state change might take a moment to propagate to the hook,
-        // but for document creation we can proceed or check auth.currentUser
+        // Refresh user from auth directly as state update is async
+        currentUser = auth.currentUser;
+      }
+
+      if (!currentUser) {
+        throw new Error("Unable to authenticate. Please check your connection.");
       }
 
       const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-      const startDateTime = new Date(`${formData.date}T${formData.startTime}:00`);
-      const endDateTime = new Date(`${formData.date}T${formData.endTime}:00`);
-      const scheduledDuration = Math.round((endDateTime.getTime() - startDateTime.getTime()) / 60000);
 
-      const docRef = await addDoc(collection(db, 'meetings'), {
-        title: formData.title || "Untitled Meeting",
-        ownerId: currentUser?.uid || "guest", // Will be updated on next sync if needed
-        status: 'planning',
-        scheduledAt: startDateTime.toISOString(),
-        scheduledDuration: scheduledDuration,
-        timezone: timezone,
-        topicOrder: [],
-        startedAt: null,
-        isDeleted: false,
-        isArchived: false,
-        guestAccess: true,
-        createdAt: new Date().toISOString(),
-        searchKeywords: "",
-      });
+      const meetings: any[] = [];
+      const seriesId = formData.isRecurring ? uuidv4() : undefined;
 
-      router.push(`/meeting/${docRef.id}`);
+      let currentDate = new Date(`${formData.date}T${formData.startTime}:00`);
+      const endDate = formData.isRecurring && formData.recurrenceEndDate
+        ? new Date(`${formData.recurrenceEndDate}T23:59:59`)
+        : currentDate; // effectively one occurrence if not recurring or no end date
+
+      let occurrences = 0;
+      const MAX_OCCURRENCES = 50;
+
+      // Loop to generate occurrences
+      while (occurrences < MAX_OCCURRENCES) {
+        // Base case: always create at least one (the first one)
+        // Check if we passed the end date
+        if (formData.isRecurring && isAfter(currentDate, endDate)) {
+          break;
+        }
+
+        const currentStartDateTime = new Date(currentDate);
+        // Set time components from form data strictly
+        const [hours, minutes] = formData.startTime.split(':').map(Number);
+        currentStartDateTime.setHours(hours, minutes, 0, 0);
+
+        const currentEndDateTime = new Date(currentStartDateTime);
+        const [endHours, endMinutes] = formData.endTime.split(':').map(Number);
+        currentEndDateTime.setHours(endHours, endMinutes, 0, 0);
+
+        // Handle overnight meetings if needed (end time < start time), assume next day
+        if (currentEndDateTime < currentStartDateTime) {
+          currentEndDateTime.setDate(currentEndDateTime.getDate() + 1);
+        }
+
+        const scheduledDuration = Math.round((currentEndDateTime.getTime() - currentStartDateTime.getTime()) / 60000);
+
+        const meetingData = {
+          title: formData.title || "Untitled Meeting",
+          ownerId: currentUser.uid,
+          status: 'planning',
+          scheduledAt: currentStartDateTime.toISOString(),
+          scheduledDuration: scheduledDuration,
+          timezone: timezone,
+          topicOrder: [],
+          startedAt: null,
+          isDeleted: false,
+          isArchived: false,
+          guestAccess: true,
+          createdAt: new Date().toISOString(),
+          searchKeywords: "",
+          ...(formData.isRecurring ? {
+            recurrence: {
+              frequency: formData.recurrenceFrequency,
+              endDate: formData.recurrenceEndDate,
+              seriesId: seriesId
+            }
+          } : {})
+        };
+
+        meetings.push(meetingData);
+
+        if (!formData.isRecurring) break;
+
+        // Increment date for next iteration
+        occurrences++;
+        if (occurrences >= MAX_OCCURRENCES) break;
+
+        switch (formData.recurrenceFrequency) {
+          case 'daily':
+            currentDate = addDays(currentDate, 1);
+            break;
+          case 'weekly':
+            currentDate = addWeeks(currentDate, 1);
+            break;
+          case 'monthly':
+            currentDate = addMonths(currentDate, 1);
+            break;
+          case 'yearly':
+            currentDate = addYears(currentDate, 1);
+            break;
+        }
+      }
+
+      // Batch creation logic or individual adds (using individual for now as batch is limited to 500 but simpler to write individually)
+      // We want to redirect to the FIRST created meeting.
+      let firstMeetingId = "";
+
+      for (let i = 0; i < meetings.length; i++) {
+        const docRef = await addDoc(collection(db, 'meetings'), meetings[i]);
+        if (i === 0) firstMeetingId = docRef.id;
+      }
+
+      router.push(`/meeting/${firstMeetingId}`);
     } catch (error: any) {
       console.error("Error creating meeting:", error);
 
@@ -89,7 +172,7 @@ export default function CreateMeetingPage() {
   return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 py-12">
       <Card className="w-full max-w-md shadow-2xl border-0 overflow-hidden">
-        {/* Header Section with the design you liked */}
+        {/* Header Section */}
         <div className="bg-slate-900 pt-12 pb-8 px-6 flex flex-col items-center text-center">
           <div className="w-20 h-20 bg-white/10 backdrop-blur-sm rounded-3xl flex items-center justify-center mb-6 shadow-xl border border-white/10">
             <Calendar className="w-10 h-10 text-white" />
@@ -166,6 +249,60 @@ export default function CreateMeetingPage() {
               </div>
             </div>
 
+            {/* Recurrence Options */}
+            <div className="pt-2 border-t border-slate-100">
+              <div className="flex items-center justify-between py-2">
+                <label htmlFor="recurrence" className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+                  <Repeat className="w-4 h-4 text-slate-500" />
+                  Recurring meeting
+                </label>
+                <Switch
+                  id="recurrence"
+                  checked={formData.isRecurring}
+                  onCheckedChange={(checked) => setFormData({ ...formData, isRecurring: checked })}
+                />
+              </div>
+
+              {formData.isRecurring && (
+                <div className="space-y-4 pt-2 animate-in slide-in-from-top-2 fade-in">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                        Frequency
+                      </label>
+                      <Select
+                        value={formData.recurrenceFrequency}
+                        onValueChange={(val: any) => setFormData({ ...formData, recurrenceFrequency: val })}
+                      >
+                        <SelectTrigger className="bg-white">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="daily">Daily</SelectItem>
+                          <SelectItem value="weekly">Weekly</SelectItem>
+                          <SelectItem value="monthly">Monthly</SelectItem>
+                          <SelectItem value="yearly">Yearly</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                        Ends On
+                      </label>
+                      <Input
+                        type="date"
+                        required={formData.isRecurring}
+                        value={formData.recurrenceEndDate}
+                        onChange={(e) => setFormData({ ...formData, recurrenceEndDate: e.target.value })}
+                        className="bg-white"
+                        min={formData.date}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
             <Button
               type="submit"
               className="w-full bg-slate-900 hover:bg-slate-800 text-white h-12 text-base mt-4 shadow-lg shadow-slate-900/20 rounded-xl transition-all"
@@ -175,7 +312,8 @@ export default function CreateMeetingPage() {
                 "Creating..."
               ) : (
                 <>
-                  <Plus className="w-5 h-5 mr-3" /> Create Agenda
+                  <Plus className="w-5 h-5 mr-3" />
+                  {formData.isRecurring ? "Create Series" : "Create Agenda"}
                 </>
               )}
             </Button>

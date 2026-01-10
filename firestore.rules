@@ -137,6 +137,23 @@ service cloud.firestore {
           );
         }
       }
+      // --- Decisions Sub-collection (Meeting Level) ---
+      match /decisions/{decisionId} {
+        allow read: if isAuthenticated() && (
+          resource.data.ownerId == request.auth.uid ||
+          isMeetingOwner(meetingId) ||
+          allowsGuestAccess(meetingId) ||
+          // Allow reading if part of the meeting (basic read access inheritance)
+          getMeeting(meetingId).ownerId == request.auth.uid ||
+          getMeeting(meetingId).guestAccess == true
+        );
+
+        allow create, update: if isAuthenticated() && (
+          isMeetingOwner(meetingId) || allowsGuestAccess(meetingId)
+        );
+
+        allow delete: if isMeetingOwner(meetingId);
+      }
     }
 
     // --- Global Collection Group Rules ---

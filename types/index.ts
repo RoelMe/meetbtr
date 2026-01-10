@@ -45,6 +45,11 @@ export interface Meeting {
     guestAccess: boolean;
     createdAt: string;
     searchKeywords?: string; // Concatenated titles and owners of topics for search
+    recurrence?: {
+        frequency: 'daily' | 'weekly' | 'monthly' | 'yearly';
+        endDate: string;
+        seriesId: string;
+    }
 }
 
 export interface Comment {
@@ -58,4 +63,19 @@ export interface Comment {
     parentId?: string | null; // For threaded replies
     mentions: string[]; // Array of user IDs/Names mentioned
     updatedAt?: string;
+}
+
+export interface Decision {
+    id: string;
+    topicId: string;
+    meetingId: string;
+    meetingOwnerId?: string;
+    meetingTitle: string;
+    topicTitle: string;
+    description: string;
+    ownerName: string;
+    ownerId?: string;
+    effectiveDate: string; // ISO string
+    expiryDate?: string; // ISO string
+    createdAt: string;
 }
