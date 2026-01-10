@@ -277,11 +277,11 @@ export default function CreateMeetingPage() {
                         <SelectTrigger className="bg-white">
                           <SelectValue />
                         </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="daily">Daily</SelectItem>
-                          <SelectItem value="weekly">Weekly</SelectItem>
-                          <SelectItem value="monthly">Monthly</SelectItem>
-                          <SelectItem value="yearly">Yearly</SelectItem>
+                        <SelectContent className="border-slate-100 shadow-lg shadow-slate-200/50 rounded-xl min-w-[140px]">
+                          <SelectItem value="daily" className="focus:bg-slate-50 focus:text-slate-900 cursor-pointer text-slate-600 font-medium my-0.5 rounded-lg pl-8">Daily</SelectItem>
+                          <SelectItem value="weekly" className="focus:bg-slate-50 focus:text-slate-900 cursor-pointer text-slate-600 font-medium my-0.5 rounded-lg pl-8">Weekly</SelectItem>
+                          <SelectItem value="monthly" className="focus:bg-slate-50 focus:text-slate-900 cursor-pointer text-slate-600 font-medium my-0.5 rounded-lg pl-8">Monthly</SelectItem>
+                          <SelectItem value="yearly" className="focus:bg-slate-50 focus:text-slate-900 cursor-pointer text-slate-600 font-medium my-0.5 rounded-lg pl-8">Yearly</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
